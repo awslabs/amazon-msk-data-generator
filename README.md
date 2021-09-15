@@ -7,7 +7,7 @@ The killer feature is being able to generate
 events which reference other generated events.  (AKA: cross-reference, reference-able, joinable, etc.)
 
 For example, we can generate one stream of Order events containing a customer_id (as well as price, sku, quantity, etc.) 
-and at same time, we can generate a different stream of Customer events containing a customer_id (as well as first name, last name, location, etc.)
+and at the same time, we can generate a different stream of Customer events containing a customer_id (as well as first name, last name, location, etc.)
 The dynamically generated Customer event customer_id can reference the Order event customer_id.
 
 #### Why this matters?
