@@ -1,0 +1,21 @@
+{
+  "name": "msk-data-generator",
+  "config": {
+    "connector.class": "com.amazonaws.mskdatagen.GeneratorSourceConnector",
+
+    "genv.impressions.bid_id.with": "#{Code.isbn10}",
+    "genv.impressions.i_timestamp.with":"#{date.past '10','SECONDS'}",
+    "genv.impressions.campaign_id.with": "#{Code.isbn10}",
+    "genv.impressions.creative_details.with": "#{Color.name}",
+    "genv.impressions.country_code.with": "#{Address.countryCode}",
+
+
+    "genkp.clicks.with": "#{Code.isbn10}",
+    "genv.clicks.c_timestamp.with":"#{date.past '10','SECONDS'}",
+    "genv.clicks.correlation_id.matching": "impressions.value.bid_id",
+    "genv.clicks.tracker.with": "#{Lorem.characters '15'}",
+
+    "global.throttle.ms": "5000",
+    "global.history.records.max": "10"
+  }
+}

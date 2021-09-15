@@ -1,0 +1,207 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: "Create ECS Cluster running MSK Data Generator in Kafka Connect and Kafdrop"
+
+Parameters:
+  BootstrapServer:
+    Description: Bootstrap Server String of your existing MSK Cluster
+    Type: String
+
+  SubnetID:
+    Description: AWS SubnetID for the EC2 instance used by ECS (likely where existing Kafka clients are deployed)
+    Type: AWS::EC2::Subnet::Id
+
+  SecurityGroupId:
+    Description: Security Group granted access to MSK (should be set already) AND has appropriate ports open for access from laptop; i.e. 8083 for Kafka Connect and 9000 for Kafdrop
+    Type: AWS::EC2::SecurityGroup::Id
+
+  EC2KeyName: # TODO - Someday-maybe this may be unneeded and could be removed
+    Description: Name of an existing EC2 KeyPair to enable SSH access to the ECS EC2 instance to possibly check logs
+    Type: AWS::EC2::KeyPair::KeyName
+
+Resources:
+  Cluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: msk-data-generator
+
+  Server:
+    Type: "AWS::EC2::Instance"
+    Properties:
+      ImageId: ami-0128839b21d19300e # amazon-ecs-optimized -- EAST1 -- TODO make region dynamic instead of hard code;
+      InstanceType: "t2.xlarge"
+      KeyName: !Ref EC2KeyName
+      SubnetId: !Ref SubnetID
+      SecurityGroupIds:
+        - !Ref SecurityGroupId
+      BlockDeviceMappings:
+        - DeviceName: "/dev/xvda"
+          Ebs:
+            VolumeType: "gp2"
+            VolumeSize: "30"
+#      IamInstanceProfile: ecsInstanceRole # or use your own if you don't want to create one as shown next;
+                                           # i.e. assumes ecsInstanceRole already exists
+      IamInstanceProfile: !Ref EC2InstanceProfile
+      UserData:
+        Fn::Base64:
+          Fn::Join:
+            - "\n"
+            - - "#!/bin/bash"
+              - "echo ECS_CLUSTER=msk-data-generator >> /etc/ecs/ecs.config"
+      Tags:
+        - Key: Name
+          Value: msk-data-generator
+
+  EC2Role:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      Policies:
+        - PolicyName: ecs-service
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'ecs:CreateCluster'
+                  - 'ecs:DeregisterContainerInstance'
+                  - 'ecs:DiscoverPollEndpoint'
+                  - 'ecs:Poll'
+                  - 'ecs:RegisterContainerInstance'
+                  - 'ecs:StartTelemetrySession'
+                  - 'ecs:Submit*'
+                  - 'logs:CreateLogStream'
+                  - 'logs:PutLogEvents'
+                Resource: '*'
+
+  EC2InstanceProfile:
+    Type: 'AWS::IAM::InstanceProfile'
+    Properties:
+      Path: /
+      Roles:
+        - !Ref EC2Role
+
+  KafkaConnectTask:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Cpu: 256
+      Family: msk-data-generator
+      Memory: 2048
+      RequiresCompatibilities:
+        - "EC2"
+      ContainerDefinitions:
+        - Name: kafka-connect
+          Hostname: kafka-connect
+          ExtraHosts:
+            - Hostname: "kafka-connect"
+              IpAddress: 127.0.0.1
+          Image: "public.ecr.aws/t8d8i9s4/msk-data-generator:latest"
+          Cpu: 40
+          Memory: 2048
+          Essential: "true"
+          PortMappings:
+            - ContainerPort: 8083
+              HostPort: 8083
+              Protocol: TCP
+          Environment:
+            - Name: CONNECT_BOOTSTRAP_SERVERS
+              Value: !Ref BootstrapServer
+            - Name: CONNECT_REST_PORT
+              Value: 8083
+            - Name: CONNECT_GROUP_ID
+              Value: msk-data-gen-connect-group
+            - Name: CONNECT_CONFIG_STORAGE_TOPIC
+              Value: msk-data-gen-connect-configs
+            - Name: CONNECT_OFFSET_STORAGE_TOPIC
+              Value: msk-data-gen-connect-offsets
+            - Name: CONNECT_STATUS_STORAGE_TOPIC
+              Value: msk-data-gen-connect-status
+            - Name: CONNECT_KEY_CONVERTER
+              Value: "org.apache.kafka.connect.storage.StringConverter"
+            - Name: CONNECT_VALUE_CONVERTER
+              Value: "org.apache.kafka.connect.json.JsonConverter"
+            - Name: CONNECT_VALUE_CONVERTER_SCHEMAS_ENABLE #TODO
+              Value: false
+            - Name: CONNECT_INTERNAL_KEY_CONVERTER
+              Value: "org.apache.kafka.connect.json.JsonConverter"
+            - Name: CONNECT_INTERNAL_VALUE_CONVERTER
+              Value: "org.apache.kafka.connect.json.JsonConverter"
+            - Name: CONNECT_REST_ADVERTISED_HOST_NAME
+              Value: kafka-connect
+            - Name: CONNECT_LOG4J_ROOT_LOGLEVEL
+              Value: INFO
+            - Name: CONNECT_LOG4J_LOGGERS
+              Value: "org.apache.kafka.connect.runtime.rest=WARN,org.reflections=ERROR"
+              # MSK sets min.in.sync.replicas to 2 for all topics by default, so setting to 2 for the following
+            - Name: CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR
+              Value: 2
+            - Name: CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR
+              Value: 2
+            - Name: CONNECT_STATUS_STORAGE_REPLICATION_FACTOR
+              Value: 2
+
+  KafkaConnectService:
+    Type: AWS::ECS::Service
+    Properties:
+      Cluster: msk-data-generator
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 100
+      DesiredCount: 1
+      PlacementStrategies:
+      - Type: spread
+        Field: attribute:ecs.availability-zone
+      - Type: spread
+        Field: instanceId
+      ServiceName: kafka-connect
+      TaskDefinition: !Ref KafkaConnectTask
+    DependsOn: KafkaConnectTask
+
+  KafdropTask:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Cpu: 128
+      Family: kafka-ecosystem
+      Memory: 1024
+      NetworkMode: host
+      RequiresCompatibilities:
+        - "EC2"
+      ContainerDefinitions:
+        - Name: kafdrop
+          Hostname: kafdrop
+          Image: "obsidiandynamics/kafdrop"
+          Cpu: 10
+          Memory: 1024
+          Essential: "true"
+          PortMappings:
+            - ContainerPort: 9000
+              HostPort: 9000
+              Protocol: TCP
+          Environment:
+            - Name: KAFKA_BROKERCONNECT
+              Value: !Ref BootstrapServer
+            - Name: SCHEMA_REGISTRY_URL
+              Value: "http://172.17.0.1:8080" #TODO
+
+  KafdropService:
+    Type: AWS::ECS::Service
+    Properties:
+      Cluster: msk-data-generator
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 100
+      DesiredCount: 1
+      PlacementStrategies:
+      - Type: spread
+        Field: attribute:ecs.availability-zone
+      - Type: spread
+        Field: instanceId
+      ServiceName: kafdrop-service
+      TaskDefinition: !Ref KafdropTask
+    DependsOn: KafdropTask

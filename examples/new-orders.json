@@ -1,0 +1,20 @@
+{
+  "name": "msk-data-generator",
+  "config": {
+    "connector.class": "com.amazonaws.mskdatagen.GeneratorSourceConnector",
+
+    "genkp.customer.with": "#{Code.isbn10}",
+    "genv.customer.name.with": "#{Name.full_name}",
+    "genv.customer.gender.with": "#{Demographic.sex}",
+    "genv.customer.favorite_beer.with": "#{Beer.name}",
+    "genv.customer.state.with": "#{Address.state}",
+
+    "genkp.order.with": "#{Code.isbn10}",
+    "genv.order.product_id.with": "#{number.number_between '101','109'}",
+    "genv.order.quantity.with": "#{number.number_between '1','5'}",
+    "genv.order.customer_id.matching": "customer.key",
+
+    "global.throttle.ms": "2000",
+    "global.history.records.max": "1000"
+  }
+}
