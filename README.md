@@ -36,7 +36,9 @@ See link in Resources section below.
 ## Getting Started
 
 When you have an existing MSK cluster (configured with no authentication) you can run the CloudFormation template
-found in the [deploy](./deploy/) directory of this repo.
+found in the [deploy](./deploy/) directory of this repo.  It will likely be helpful if you have this
+cluster configured for `auto.create.topics.enable` to `true`.  For more information on custom MSK configurations see Resources
+section below.
 
 ### Requirements
 
@@ -225,10 +227,12 @@ For further information on configuration options, check both the Voluble README 
     `curl -X DELETE -H "Content-Type: application/json"  http://ec2-3-239-203-236.compute-1.amazonaws.com:8083/connectors/msk-data-generator/`
   
   
-## External References
+## Resources
 
 * Voluble (basis for this project) https://github.com/MichaelDrogalis/voluble
 
 * Java Faker https://github.com/DiUS/java-faker 
+
+* Custom MSK Configurations https://docs.aws.amazon.com/msk/latest/developerguide/msk-configuration-properties.html
 
 
