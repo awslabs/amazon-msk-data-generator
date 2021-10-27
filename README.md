@@ -16,6 +16,8 @@ Multiple streams of "joinable" data is especially useful when building
 stream processor applications (in `Kinesis Data Analytics for Apache Flink` or `Kinesis Data
 Analytics Studio` for example) which perform joins.
 
+For an example, see AWS Big Data Blog [Query your Amazon MSK topics interactively using Amazon Kinesis Data Analytics Studio](https://aws.amazon.com/blogs/big-data/query-your-amazon-msk-topics-interactively-using-amazon-kinesis-data-analytics-studio/)
+
 #### Why translate to Java?
 
 By translating to Java, the hope is we open up the potential of wider community
