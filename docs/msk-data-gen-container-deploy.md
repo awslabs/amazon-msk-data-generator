@@ -1,10 +1,15 @@
 
+## How to Deploy MSK Data Generator in a Container running in ECS
 
+### Overview
+This example uses a publicly avaiable container and CloudFormation template to deploy MSK Data Generator and Kafdrop running in Elastic Container Service.
 
-## Getting Started
+It requires an existing MSK cluster configured to allow access with no authentication and plain-text access (port 9092).
 
-When you have an existing MSK cluster (configured with no authentication) you can run the CloudFormation template
-found in the [deploy](../deploy/) directory of this repo.  Before running the CFN template, consider the following requirements.
+The CloudFormation template
+is found in the [deploy](../deploy/) directory of this repo.  
+
+Before running the CFN template, consider the following requirements.
 
 ### Requirements
 

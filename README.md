@@ -35,7 +35,7 @@ See link in Resources section below.
 
 ## Getting Started
 
-MSK Data Generator can be deployed in a variety of ways with a variety of MSK Configurations including:
+MSK Data Generator can be deployed in a variety of ways including:
 
 * [Deploying in a container running in Elastic Container Service](./docs/msk-data-gen-container-deploy.md)
 
