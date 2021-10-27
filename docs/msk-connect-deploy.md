@@ -9,11 +9,11 @@ Example of Two Security Groups
 ![Two MSK Security Groups](../assets/msk-two-security-groups.png)
 
 
-#### Overview
+## Overview
 
 MSK Connect connectors are deployed by uploading a JAR or ZIP file to S3, setting access rules via IAM, and then deploying the connector via the MSK Console or AWS API.  In this tutorial, we will deploy via MSK Console.
 
-#### Prerequisites
+## Prerequisites
 
 This tutorial has three requirements before proceeding with the Deployment Steps.
 
@@ -25,7 +25,7 @@ This tutorial has three requirements before proceeding with the Deployment Steps
 
 4. _Note: as with any MSK Data Generator deployment, you will need to have your MSK cluster configured to allow auto topic creation or have your topics pre-created.  This is noted in other areas of the documentation._
 
-#### Deployment Steps
+## Deployment Steps
 
 1. Upload the MSK Data Generator with dependencies JAR file to your appropriate S3 bucket.  (See Prerequisites #3 above for S3 bucket requirements).  A [pre-built JAR file is available](https://github.com/awslabs/amazon-msk-data-generator/releases) or you may build your own.
 
