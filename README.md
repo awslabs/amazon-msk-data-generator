@@ -102,7 +102,7 @@ Notice how the `order` event `customer_id` value references the previously gener
 
 This also highlights the differences between `with` and `matching` in configuration.
 
-`with` is this example is simply utilizing and methods available from Java Faker see [API docs](https://dius.github.io/java-faker/apidocs/) and then compare Class methods with configuration above such as `Name.full_name`, `Beer.name`, etc.
+In this example, `with` is utilizing and methods available from Java Faker see [API docs](https://dius.github.io/java-faker/apidocs/) and then compare the class methods with configuration above such as `Name.full_name`, `Beer.name`, etc.
 
 
 With this example above and the 5 previously mentioned essential constructs in mind, the sequence is:
