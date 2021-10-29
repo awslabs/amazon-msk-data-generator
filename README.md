@@ -72,7 +72,7 @@ For example, consider the configuration of the following:
 "genv.order.customer_id.matching": "customer.key"
 ```
 
-This config will generate data to the `customer` and `customer` topics and _assumes_ the MSK cluster has been configure to allow auto topic creation OR the `customer` and `order` topics are already created.
+This config will generate data to the `customer` and `customer` topics and _assumes_ the MSK cluster has been configured to allow auto topic creation OR the `customer` and `order` topics have already been created.
 
 For example, the above configuration will create 2 events with every iteration similar to the following:
 
