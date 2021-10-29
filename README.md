@@ -60,13 +60,13 @@ There are 5 essential constructs to understand when customizing key-value data g
 For example, consider the configuration of the following:
 
 ```
-"genkp.customer.with": "#{Code.isbn10}",
+"genkp.customer.with": "#{Internet.uuid}",
 "genv.customer.name.with": "#{Name.full_name}",
 "genv.customer.gender.with": "#{Demographic.sex}",
 "genv.customer.favorite_beer.with": "#{Beer.name}",
 "genv.customer.state.with": "#{Address.state}",
 
-"genkp.order.with": "#{Code.isbn10}",
+"genkp.order.with": "#{Internet.uuid}",
 "genv.order.product_id.with": "#{number.number_between '101','109'}",
 "genv.order.quantity.with": "#{number.number_between '1','5'}",
 "genv.order.customer_id.matching": "customer.key"
@@ -74,11 +74,38 @@ For example, consider the configuration of the following:
 
 This config will generate data to the `customer` and `customer` topics and _assumes_ the MSK cluster has been configure to allow auto topic creation OR the `customer` and `order` topics are already created.
 
-`customer` topic will have data generated with a primitve key according to Java Faker `code.isbn10` and values of `name`, `gender`, `favorite_beer`, and `state`.
+For example, the above configuration will create 2 events with every iteration similar to the following:
 
-`order` topic generation will be similar to `customer`, but will generate the `customer_id` value according to the previously generated customer key field.  (Now we can test our join code!)
+`customer` event with a key of `0c88cbb7-eb4a-44f0-83aa-00957761b3b6` (because Internet.uuid for random string from Java Faker) and JSON payload of
 
-With the 5 essential constructs in mind, the sequence is:
+```
+{
+   "favorite_beer": "Weihenstephaner Hefeweissbier",
+   "gender": "Male",
+   "name": "Miss Gilbert Luettgen",
+   "state": "Oregon"
+}
+```
+
+`order` event with a random string key of `dc236186-9037-45a0-8b91-a3c2b50f0582` (again, because of Internet.uuid)
+and a JSON payload of
+
+```
+{
+   "quantity": "4",
+   "product_id": "132",
+   "customer_id": "0c88cbb7-eb4a-44f0-83aa-00957761b3b6"
+}
+```
+
+Notice how the `order` event `customer_id` value references the previously generated `customer` key field?  (Hint: with this kind of data generation, we can test our join code!)
+
+This also highlights the differences between `with` and `matching` in configuration.
+
+`with` is this example is simply utilizing and methods available from Java Faker see [API docs](https://dius.github.io/java-faker/apidocs/) and then compare Class methods with configuration above such as `Name.full_name`, `Beer.name`, etc.
+
+
+With this example above and the 5 previously mentioned essential constructs in mind, the sequence is:
 
 `directive.topic.attribute-or-qualifier.generator: expression`
 
@@ -91,3 +118,5 @@ For further information on data generation configuration options, check both the
 * Voluble (basis for this project) https://github.com/MichaelDrogalis/voluble
 
 * Java Faker https://github.com/DiUS/java-faker
+
+* Java Faker API docs https://dius.github.io/java-faker/apidocs/
