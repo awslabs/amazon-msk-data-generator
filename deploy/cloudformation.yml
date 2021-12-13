@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: "Create ECS Cluster running MSK Data Generator in Kafka Connect and Kafdrop"
+Description: "Create ECS Cluster running MSK Data Generator in Kafka Connect"
 
 Parameters:
   BootstrapServer:
@@ -11,7 +11,7 @@ Parameters:
     Type: AWS::EC2::Subnet::Id
 
   SecurityGroupId:
-    Description: Security Group granted access to MSK (should be set already) AND has appropriate ports open for access from laptop; i.e. 8083 for Kafka Connect and 9000 for Kafdrop
+    Description: Security Group granted access to MSK (should be set already) AND has appropriate ports open for access from laptop; i.e. 8083 for Kafka Connect
     Type: AWS::EC2::SecurityGroup::Id
 
   EC2KeyName: # TODO - Someday-maybe this may be unneeded and could be removed
@@ -162,46 +162,3 @@ Resources:
       ServiceName: kafka-connect
       TaskDefinition: !Ref KafkaConnectTask
     DependsOn: KafkaConnectTask
-
-  KafdropTask:
-    Type: AWS::ECS::TaskDefinition
-    Properties:
-      Cpu: 128
-      Family: kafka-ecosystem
-      Memory: 1024
-      NetworkMode: host
-      RequiresCompatibilities:
-        - "EC2"
-      ContainerDefinitions:
-        - Name: kafdrop
-          Hostname: kafdrop
-          Image: "obsidiandynamics/kafdrop"
-          Cpu: 10
-          Memory: 1024
-          Essential: "true"
-          PortMappings:
-            - ContainerPort: 9000
-              HostPort: 9000
-              Protocol: TCP
-          Environment:
-            - Name: KAFKA_BROKERCONNECT
-              Value: !Ref BootstrapServer
-            - Name: SCHEMA_REGISTRY_URL
-              Value: "http://172.17.0.1:8080" #TODO
-
-  KafdropService:
-    Type: AWS::ECS::Service
-    Properties:
-      Cluster: msk-data-generator
-      DeploymentConfiguration:
-        MaximumPercent: 200
-        MinimumHealthyPercent: 100
-      DesiredCount: 1
-      PlacementStrategies:
-      - Type: spread
-        Field: attribute:ecs.availability-zone
-      - Type: spread
-        Field: instanceId
-      ServiceName: kafdrop-service
-      TaskDefinition: !Ref KafdropTask
-    DependsOn: KafdropTask

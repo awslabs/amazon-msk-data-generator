@@ -2,7 +2,7 @@
 ## How to Deploy MSK Data Generator in a Container running in ECS
 
 ### Overview
-This example uses a publicly avaiable container and CloudFormation template to deploy MSK Data Generator and Kafdrop running in Elastic Container Service.
+This example uses a publicly available container and CloudFormation template to deploy MSK Data Generator running in Elastic Container Service.
 
 It requires an existing MSK cluster configured to allow access with no authentication and plain-text access (port 9092).
 
@@ -36,7 +36,7 @@ Here's a walk-through example of one way to get started
 
     * EC2KeyName: existing EC2 pair in case you want to ssh to the ECS EC2 instance
 
-    * SecurityGroupId: existing security group with access to MSK cluster AND ports 8083 and 9000 open.  More on this below.
+    * SecurityGroupId: existing security group with access to MSK cluster AND port 8083.  More on this below.
 
     * SubnetID: where the ECS EC2 instance will be deployed; presumes access to MSK Cluster
 
@@ -45,7 +45,7 @@ Here's a walk-through example of one way to get started
     #### Note on `SecurityGroupId`
 
     At minimum, the specified Security Group should have access to MSK ports.  In addition, in this example, open access for
-    ports 8083 (to configure MSK Data Generator from your environment) and 9000 (for Kafdrop access from your environment).
+    ports 8083 (to configure MSK Data Generator from your environment).
 
     For example, the following shows the Security Group specified in example above
     has ports 22, 8083, and 9000 open from my laptop IP
@@ -56,8 +56,8 @@ Here's a walk-through example of one way to get started
 
     ![Security Group 2](../assets/security-group-example-2.jpg)
 
-    Notice how my security group id starting with "sg-0f4" is allowed access to MSK related ports and also access to ports
-    9000 and 8083 from my laptop ip address.  Of course, these values are dependent on your environment and you may simply
+    Notice how my security group id starting with "sg-0f4" is allowed access to MSK related ports and also access to port
+    8083 from my laptop ip address.  Of course, these values are dependent on your environment and you may simply
     use one security group if desired.  This is just an example.
 
     To Continue Click Next and Next again on the following screen.  
@@ -81,13 +81,7 @@ Here's a walk-through example of one way to get started
 
 5. Sanity Check
 
-    Using your public ip address or public DNS obtained from previous step, open Kafdrop on port 9000
-
-    In this particular example, I would open http://ec2-3-239-203-236.compute-1.amazonaws.com:9000/
-
-    Note: It may take 30 seconds or so for Kafdrop UI to first load.
-
-    Also, confirm you can query the Kafka Connect REST endpoint on port 8083
+    Confirm you can query the Kafka Connect REST endpoint on port 8083
 
     For my particular example, http://ec2-3-239-203-236.compute-1.amazonaws.com:8083/connector-plugins/ and I
     would expect to see JSON response similar to the following
@@ -139,12 +133,23 @@ Here's a walk-through example of one way to get started
 
 7. Confirm Data Generation
 
-    Next, you can confirm you are generating data with Kafdrop.  If you used the above example,
-    you'll see `order` and `customer` topics now.  For example
+    At this point, you can confirm you are generating data.  If you used the above example,
+    you'll see events in the `order` and `customer` topics now.  For example, if we run the console consumer
 
-    ![Working Example](../assets/working-example.jpg)
+    ```
+    bin/kafka-console-consumer.sh --topic order --bootstrap-server b-2.XXXcluster-msk.nb7mmr.c21.kafka.us-east-1.amazonaws.com:9092,b-3.XXXcluster-msk.nb7mmr.c21.kafka.us-east-1.amazonaws.com:9092,b-1.XXXcluster-msk.nb7mmr.c21.kafka.us-east-1.amazonaws.com:9092
+    ```
 
-    Nice.  Next steps are learning more about configuration options so you can customize
+    we should see events such as
+
+    ```
+{"quantity":"2","product_id":"114","customer_id":"e45bb3bb-35e7-4314-90e7-e0adf8df8c57"}
+{"quantity":"2","product_id":"140","customer_id":"b78a7812-32fb-40c0-b028-f2111589fc61"}
+```
+
+    Nice.  We see two events in the example above.  
+
+    Next steps are learning more about configuration options so you can customize
     the data being generated.  Also, you'll benefit from knowing more about how to operate the
     data generator.
 
