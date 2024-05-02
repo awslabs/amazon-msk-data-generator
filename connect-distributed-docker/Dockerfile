@@ -12,9 +12,9 @@ RUN python3 get-pip.py
 RUN pip3 install awscli
 
 ENV SCALA_VERSION 2.12
-ENV KAFKA_VERSION 2.7.0
+ENV KAFKA_VERSION 2.7.1
 
-ENV KAFKA_HOME /opt/kafka_2.12-2.7.0
+ENV KAFKA_HOME /opt/kafka_2.12-2.7.1
 
 RUN yum -y update && yum -y install tar gzip wget
 
