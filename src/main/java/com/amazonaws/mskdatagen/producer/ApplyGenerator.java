@@ -9,7 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Random;
+import java.util.SplittableRandom;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -32,7 +32,7 @@ public class ApplyGenerator {
 
     public static final long DEFAULT_MAX_HISTORY = 1000000L;
     public static final int MAX_FAILED_ATTEMPTS = 100;
-    private final Random rand = new Random();
+    private final SplittableRandom rand = new SplittableRandom();
 
     private final Context context;
 
